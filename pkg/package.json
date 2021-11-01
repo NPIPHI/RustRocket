@@ -1,0 +1,15 @@
+{
+  "name": "RustRocket",
+  "collaborators": [
+    "The wasm-bindgen Developers"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "RustRocket_bg.wasm",
+    "RustRocket.js",
+    "RustRocket.d.ts"
+  ],
+  "module": "RustRocket.js",
+  "types": "RustRocket.d.ts",
+  "sideEffects": false
+}
