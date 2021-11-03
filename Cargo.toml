@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 [dependencies]
 js-sys = "0.3.55"
 wasm-bindgen = "0.2.78"
+csv = "1.1"
 
 [dependencies.web-sys]
 version = "0.3.4"

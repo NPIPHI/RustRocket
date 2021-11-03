@@ -3,10 +3,15 @@
 use std::error::Error;
 use std::io;
 use std::process;
+use std::fs::File;
+use csv;
 
-fn example() -> Result<(), Box<dyn Error>> {
+const csv_file: &str = "csv/trimmed.csv";
+
+pub fn example() -> Result<(), Box<dyn Error>> {
     // Build the CSV reader and iterate over each record.
-    let mut rdr = csv::Reader::from_reader("../csv/trimmed.csv");
+    let file = File::open(csv_file)?;
+    let mut rdr = csv::Reader::from_reader(file);
     for result in rdr.records() {
         // The iterator yields Result<StringRecord, Error>, so we check the
         // error here.
@@ -14,11 +19,4 @@ fn example() -> Result<(), Box<dyn Error>> {
         println!("{:?}", record);
     }
     Ok(())
-}
-
-fn main() {
-    if let Err(err) = example() {
-        println!("error running example: {}", err);
-        process::exit(1);
-    }
 }
