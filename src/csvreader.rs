@@ -11,8 +11,9 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
 const CSV_FILE: &str = "csv/trimmed.csv";
+pub static ROCKET_DATA: Vec<RocketData> = get_rocket_data().unwrap();
 
-pub fn example() -> Result<Vec<RocketData>, Box<dyn Error>> {
+pub fn get_rocket_data() -> Result<Vec<RocketData>, Box<dyn Error>> {
     /*
     // Build the CSV reader and iterate over each record.
     let file = File::open(CSV_FILE)?;
@@ -47,9 +48,9 @@ pub struct RocketData {
     mx: f64,
     my: f64,
     mz: f64,
-    latitude: f64,
-    longitude: f64,
-    altitude: f64,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub altitude: f64,
     satellite_count: u32,
     position_lock: u32,
     temperature: f64,
@@ -58,4 +59,10 @@ pub struct RocketData {
     rocket_state: u32,
     l1_extension: f64,
     l2_extension: f64,
+}
+
+impl Default for RocketData {
+    fn default() -> Self {
+        return Default::default();
+    }
 }
