@@ -11,7 +11,7 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
 const CSV_FILE: &str = "csv/trimmed.csv";
-pub static ROCKET_DATA: Vec<RocketData> = get_rocket_data().unwrap();
+// pub static ROCKET_DATA: Vec<RocketData> = get_rocket_data().unwrap();
 
 pub fn get_rocket_data() -> Result<Vec<RocketData>, Box<dyn Error>> {
     /*
