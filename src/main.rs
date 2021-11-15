@@ -1,11 +1,10 @@
 // use std::process;
 //
-// mod csvreader;
+mod csvreader;
 mod mvpmatrix;
-//
-// fn main() {
-//   let rocket_data = csvreader::get_rocket_data().unwrap();
-//   let mvp_test = mvpmatrix::get_mvp(0, &rocket_data);
-// }
+mod rocket_data;
 
-fn main(){}
+fn main() {
+  let rocket_data = csvreader::get_rocket_data().unwrap();
+  let mvp_test = mvpmatrix::get_mvp(0, &rocket_data);
+}

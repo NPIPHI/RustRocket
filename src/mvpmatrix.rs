@@ -4,10 +4,6 @@ use nalgebra_glm::Mat4;
 use nalgebra_glm::Vec3;
 use map_3d;
 use num;
-use cgmath::One;
-
-use csvreader::RocketData;
-
 
 // static rocket_data_row: RocketData = RocketData::default();
 
