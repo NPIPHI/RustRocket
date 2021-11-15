@@ -14,7 +14,7 @@ csv = "1.1"
 cgmath = "0.18.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
-glm = "0.2.3"
+nalgebra-glm = "0.15.0"
 map_3d = "0.1.4"
 num = "0.4.0"
 

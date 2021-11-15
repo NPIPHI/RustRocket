@@ -1,42 +1,44 @@
-use glm;
-use glm::Vector3;
-use glm::Matrix4;
+extern crate nalgebra_glm as glm;
+
+use nalgebra_glm::Mat4;
+use nalgebra_glm::Vec3;
 use map_3d;
 use num;
 use cgmath::One;
 
-use crate::csvreader::RocketData;
+use csvreader::RocketData;
+
 
 // static rocket_data_row: RocketData = RocketData::default();
 
-fn get_look_at() -> Matrix4<f64> {  // TODO: Change to reflect ecef coordinates
-  let eye = Vector3::new(0.0, 0.0, 0.0);
-  let center = Vector3::new(0.0, 1.0, 0.0);
-  let up = Vector3::new(0.0, 1.0, 0.0);
-  return glm::ext::look_at(eye, center, up);
+fn get_look_at() -> Mat4 {  // TODO: Change to reflect ecef coordinates
+  let eye = Vec3::new(0.0, 0.0, 0.0);
+  let center = Vec3::new(0.0, 1.0, 0.0);
+  let up = Vec3::new(0.0, 1.0, 0.0);
+  return glm::look_at(&eye, &center, &up);
 }
 
-fn get_rotate() -> Matrix4<f64> {
+fn get_rotate() -> Mat4 {
   let angle = 0.0;
-  let axis = Vector3::new(0.0, 1.0, 0.0);
-  return glm::ext::rotate(&num::one(), angle, axis);
+  let axis = Vec3::new(0.0, 1.0, 0.0);
+  return glm::rotate(&num::one(), angle, &axis);
 }
 
-fn get_rocket_translate(rocket_data_row: &RocketData) -> Matrix4<f64> {
+fn get_rocket_translate(rocket_data_row: &RocketData) -> Mat4 {
   let (ecef_x, ecef_y, ecef_z) = map_3d::geodetic2ecef(rocket_data_row.latitude, rocket_data_row.longitude, rocket_data_row.altitude);
-  let ecef = Vector3::new(ecef_x, ecef_y, ecef_z);
-  return glm::ext::translate(&num::one(), ecef);
+  let ecef = Vec3::new(ecef_x as f32, ecef_y as f32, ecef_z as f32);
+  return glm::translate(&num::one(), &ecef);
 }
 
-fn get_earth_translate() -> Matrix4<f64> {
+fn get_earth_translate() -> Mat4 {
   todo!();
 }
 
-fn get_scale() -> Matrix4<f64> {
-  return glm::ext::scale(&num::one(), Vector3::one());
+fn get_scale() -> Mat4 {
+  return glm::scale(&num::one(), &Vec3::new(1.0,1.0,1.0));
 }
 
-pub fn get_mvp(csv_row_num: usize, rocket_data: &Vec<RocketData>) -> Matrix4<f64> {
+pub fn get_mvp(csv_row_num: usize, rocket_data: &Vec<RocketData>) -> Mat4 {
   let rocket_data_row = &rocket_data[csv_row_num];
   let rocket_translate = get_rocket_translate(rocket_data_row);
   let rotate = get_rotate();
