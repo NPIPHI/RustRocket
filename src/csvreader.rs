@@ -9,6 +9,7 @@ use cgmath;
 use serde_derive;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use crate::rocket_data::RocketData;
 
 const CSV_FILE: &str = "csv/trimmed.csv";
 // pub static ROCKET_DATA: Vec<RocketData> = get_rocket_data().unwrap();

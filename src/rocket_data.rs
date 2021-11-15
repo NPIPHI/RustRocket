@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 
 #[derive(PartialEq, Debug, PartialOrd, Deserialize)]
 pub struct RocketData {

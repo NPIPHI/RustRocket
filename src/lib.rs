@@ -1,7 +1,9 @@
-
-
-
 #![allow(unused_variables)]
+
+mod csvreader;
+mod mvpmatrix;
+mod rocket_data;
+
 fn main() {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsCast;

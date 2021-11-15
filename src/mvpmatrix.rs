@@ -5,6 +5,7 @@ use nalgebra_glm::Vec3;
 use map_3d;
 use num;
 
+use crate::rocket_data::RocketData;
 // static rocket_data_row: RocketData = RocketData::default();
 
 fn get_look_at() -> Mat4 {  // TODO: Change to reflect ecef coordinates
