@@ -7,8 +7,14 @@
 <body>
 <canvas id="canvas"></canvas>
 <script type="module">
-    import init from "./pkg/RustRocket.js";
-    init();
+    import init, {start, run_frame} from "./pkg/RustRocket.js";
+    await init()
+    start()
+    function main_loop(){
+        run_frame();
+        requestAnimationFrame(main_loop);
+    }
+    main_loop()
 </script>
 </body>
 </html>

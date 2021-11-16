@@ -1,14 +1,10 @@
 // Source: https://docs.rs/csv/1.1.6/csv/
 
 use std::error::Error;
-use std::io;
-use std::process;
 use std::fs::File;
+use std::io;
 use csv;
-use cgmath;
-use serde_derive;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
 use crate::rocket_data::RocketData;
 
 const CSV_FILE: &str = "csv/trimmed.csv";
