@@ -4,14 +4,14 @@ use web_sys::*;
 
 
 
-fn get_canvas() -> Option<web_sys::HtmlCanvasElement> {
+pub fn get_canvas() -> Option<web_sys::HtmlCanvasElement> {
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id("canvas").unwrap();
     canvas.dyn_into::<web_sys::HtmlCanvasElement>().ok()
 }
 
-pub fn get_context() -> Option<WebGl2RenderingContext> {
-    get_canvas()?
+pub fn get_context(canvas: &web_sys::HtmlCanvasElement) -> Option<WebGl2RenderingContext> {
+    canvas
         .get_context("webgl2").ok()??
         .dyn_into::<WebGl2RenderingContext>()
         .ok()

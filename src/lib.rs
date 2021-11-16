@@ -35,6 +35,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::*;
 
 struct GlobalData {
+    pub canvas: HtmlCanvasElement,
     pub ctx: WebGl2RenderingContext,
     pub program: WebGlProgram,
     pub vertex_array: WebGlBuffer,
@@ -49,7 +50,9 @@ static mut GLOBAL_DATA: Option<GlobalData> = None;
 
 #[wasm_bindgen]
 pub fn start() -> Result<(), JsValue> {
-    let context = get_context().unwrap();
+
+    let canvas = get_canvas().unwrap();
+    let context = get_context(&canvas).unwrap();
 
     let program = make_program(&context, VERT_SOURCE, FRAG_SOURCE)?;
     context.use_program(Some(&program));
@@ -85,6 +88,7 @@ pub fn start() -> Result<(), JsValue> {
 
     unsafe {
         GLOBAL_DATA = Some(GlobalData{
+            canvas: canvas,
             ctx: context,
             program,
             vertex_array: vertex_buffer,
@@ -102,10 +106,12 @@ pub fn start() -> Result<(), JsValue> {
 #[wasm_bindgen]
 pub fn run_frame() {
     let mut gd = unsafe {GLOBAL_DATA.take().unwrap()};
+    let cwidth = gd.canvas.width() as f32;
+    let cheight = gd.canvas.height() as f32;
 
-    let mat = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
-
-    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mat.data.as_slice());
+    let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
+    let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
+    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, rot.data.as_slice());
 
     gd.ctx.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT);
 
