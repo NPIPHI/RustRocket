@@ -76,7 +76,7 @@ fn compile_shader(
     }
 }
 
-pub fn link_program(
+fn link_program(
     context: &WebGl2RenderingContext,
     vert_shader: &WebGlShader,
     frag_shader: &WebGlShader,

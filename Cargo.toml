@@ -15,8 +15,10 @@ cgmath = "0.18.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 nalgebra-glm = "0.15.0"
+wasm-bindgen-futures = "0.4"
 map_3d = "0.1.4"
 num = "0.4.0"
+obj = "0.10"
 
 [dependencies.web-sys]
 version = "0.3.4"
@@ -31,6 +33,7 @@ features = [
     'WebGlProgram',
     'WebGlShader',
     'Window',
-    'console'
+    'console',
+    'Response'
 ]
 

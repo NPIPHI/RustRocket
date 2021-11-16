@@ -5,20 +5,29 @@ mod mvpmatrix;
 mod rocket_data;
 mod webgl;
 mod triangle;
+mod load_model;
 
 use webgl::*;
 use nalgebra_glm as glm;
 use mvpmatrix::get_model;
 use triangle::Triangle;
+use wasm_bindgen::prelude::*;
+use web_sys::*;
+use js_sys::JsString;
+use crate::rocket_data::RocketData;
+use load_model::*;
 
 
 static VERT_SOURCE: &str =
     r##"#version 300 es
 
 in vec3 position;
+in vec3 normal;
+out vec3 frag_normal;
 uniform mat4 mvp;
 
 void main() {
+    frag_normal = normal;
     gl_Position = mvp * vec4(position, 1);
 }
 "##;
@@ -27,16 +36,18 @@ static FRAG_SOURCE: &str =
 r##"#version 300 es
 
 precision highp float;
+in vec3 frag_normal;
 out vec4 outColor;
 
+vec3 light = vec3(0.7,0.7,0);
+
 void main() {
-    outColor = vec4(1, 0, 0, 1);
+    float intensity = max(dot(light, frag_normal), 0.0) + 0.5;
+    vec3 color = vec3(0.5, 0.5, 0.5) * intensity;
+    outColor = vec4(color, 1);
 }
 "##;
 
-use wasm_bindgen::prelude::*;
-use web_sys::*;
-use crate::rocket_data::RocketData;
 
 struct GlobalData {
     pub canvas: HtmlCanvasElement,
@@ -73,8 +84,8 @@ fn make_cylinder(num_pts: u32) -> Vec<Triangle> {
         let p4 = glm::vec3(x2,y1,z2);
         let c1 = glm::vec3(0.0,y1,0.0);
         let c2 = glm::vec3(0.0, y2 + (y2-y1)*2.0, 0.0);
-        cylinder.push(Triangle::new(p1, p2, p3));
-        cylinder.push(Triangle::new(p3,p4,p1));
+        cylinder.push(Triangle::new(p3, p1, p2));
+        cylinder.push(Triangle::new(p1,p3,p4));
         cylinder.push(Triangle::new(p1,c1,p4));
         cylinder.push(Triangle::new(p2,c2,p3));
     }
@@ -82,40 +93,43 @@ fn make_cylinder(num_pts: u32) -> Vec<Triangle> {
     return cylinder;
 }
 
-fn to_f32_vec(v: &Vec<Triangle>) -> Vec<f32>{
+fn to_f32_vec(v: &Vec<Triangle>) -> (Vec<f32>, Vec<f32>){
     let mut vertices: Vec<f32> = Vec::new();
-    for (verts, normals) in v.iter().map(|t| t.to_array()) {
+    let mut normals: Vec<f32> = Vec::new();
+    for (verts, norms) in v.iter().map(|t| t.to_array()) {
         for f in verts {
             vertices.push(f);
         }
+        for f in norms {
+            normals.push(f);
+        }
     }
 
-    return vertices;
+    return (vertices, normals);
 }
 
 #[wasm_bindgen]
-pub fn start() -> Result<(), JsValue> {
-
+pub async fn start() -> Result<(), JsValue> {
     let canvas = get_canvas().unwrap();
     let context = get_context(&canvas).unwrap();
+    context.enable(WebGl2RenderingContext::DEPTH_TEST);
+    context.depth_func(WebGl2RenderingContext::LEQUAL);
 
     let program = make_program(&context, VERT_SOURCE, FRAG_SOURCE)?;
     context.use_program(Some(&program));
 
-    let vertices = to_f32_vec(&make_cylinder(100));
-    // console::log_1(&format!("{:?}", vertices).into());
-
-    // let vertices: [f32; 18] =
-    //     [-0.5, -0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.5, 0.0,
-    //     0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0];
+    let (vertices, normals, uvs) = load_mesh("Ares_I_-_OBJ/Ares I/ares_I.obj").await?;
 
     let vertex_buffer = make_buffer(&context, vertices.as_slice());
+    let normal_buffer = make_buffer(&context, normals.as_slice());
     let position_attribute_location = context.get_attrib_location(&program, "position");
+    let normal_attribute_location = context.get_attrib_location(&program, "normal");
     let mvp_uniform_location = context.get_uniform_location(&program, "mvp");
 
     let vao = make_vao(&context).unwrap();
     context.bind_vertex_array(Some(&vao));
 
+    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&vertex_buffer));
     context.vertex_attrib_pointer_with_i32(0, //index
                                            3, //count per vertex
                                            WebGl2RenderingContext::FLOAT,
@@ -126,13 +140,17 @@ pub fn start() -> Result<(), JsValue> {
 
     context.enable_vertex_attrib_array(position_attribute_location as u32);
 
-    context.bind_vertex_array(Some(&vao));
+    context.vertex_attrib_pointer_with_i32(1, //index
+                                           3, //count per vertex
+                                           WebGl2RenderingContext::FLOAT,
+                                           false, //normalized
+                                           0, //stride bytes, 0 = default
+                                           0 //offset bytes
+    );
+
+    context.enable_vertex_attrib_array(normal_attribute_location as u32);
 
     let vert_count = (vertices.len() / 3) as i32;
-
-    // let: glm::Mat4 = glm::identity();
-    let mat = glm::scale(&glm::identity(), &glm::vec3(0.5,1.0,1.0));
-    context.uniform_matrix4fv_with_f32_array(mvp_uniform_location.as_ref(), false, mat.data.as_slice());
 
     context.clear_color(0.0, 0.0, 0.0, 1.0);
 
@@ -162,15 +180,15 @@ pub fn run_frame() {
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    let y = gd.frame_count as f32 / 100.0;
-    let model: glm::Mat4 = glm::translate(&glm::identity(), &glm::vec3(0.0,y, 0.0));
+    let z = gd.frame_count as f32 / 10.0;
+    let model: glm::Mat4 = glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z));
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,0.0,4.0),
-        &glm::vec3(0.0, y,0.0),
-        &glm::vec3(0.0,1.0,0.0)
+        &glm::vec3(0.0,50.0,50.0),
+        &glm::vec3(0.0, 0.0, z+50.0),
+        &glm::vec3(0.0,0.0,1.0)
     );
 
-    let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 100.0);
+    let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 1000.0);
 
     let mvp = proj * view * model;
 
