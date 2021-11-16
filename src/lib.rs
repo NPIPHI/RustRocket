@@ -4,10 +4,12 @@ mod csvreader;
 mod mvpmatrix;
 mod rocket_data;
 mod webgl;
+mod triangle;
 
 use webgl::*;
 use nalgebra_glm as glm;
 use mvpmatrix::get_model;
+use triangle::Triangle;
 
 
 static VERT_SOURCE: &str =
@@ -50,7 +52,7 @@ struct GlobalData {
 
 static mut GLOBAL_DATA: Option<GlobalData> = None;
 
-fn make_cylinder(num_pts: u32) -> Vec<glm::Vec3> {
+fn make_cylinder(num_pts: u32) -> Vec<Triangle> {
     let mut cylinder = Vec::new();
 
     for i in 0..num_pts {
@@ -70,35 +72,25 @@ fn make_cylinder(num_pts: u32) -> Vec<glm::Vec3> {
         let p3 = glm::vec3(x2,y2,z2);
         let p4 = glm::vec3(x2,y1,z2);
         let c1 = glm::vec3(0.0,y1,0.0);
-        let c2 = glm::vec3(0.0, y2, 0.0);
-        cylinder.push(p1);
-        cylinder.push(p2);
-        cylinder.push(p3);
-        cylinder.push(p3);
-        cylinder.push(p4);
-        cylinder.push(p1);
-
-        cylinder.push(p1);
-        cylinder.push(c1);
-        cylinder.push(p4);
-        cylinder.push(p2);
-        cylinder.push(c2);
-        cylinder.push(p3);
-
+        let c2 = glm::vec3(0.0, y2 + (y2-y1)*2.0, 0.0);
+        cylinder.push(Triangle::new(p1, p2, p3));
+        cylinder.push(Triangle::new(p3,p4,p1));
+        cylinder.push(Triangle::new(p1,c1,p4));
+        cylinder.push(Triangle::new(p2,c2,p3));
     }
 
     return cylinder;
 }
 
-fn to_f32_vec(v: &Vec<glm::Vec3>) -> Vec<f32>{
-    let mut ret = Vec::new();
-    for vec in v{
-        ret.push(vec.x);
-        ret.push(vec.y);
-        ret.push(vec.z);
+fn to_f32_vec(v: &Vec<Triangle>) -> Vec<f32>{
+    let mut vertices: Vec<f32> = Vec::new();
+    for (verts, normals) in v.iter().map(|t| t.to_array()) {
+        for f in verts {
+            vertices.push(f);
+        }
     }
 
-    return ret;
+    return vertices;
 }
 
 #[wasm_bindgen]
