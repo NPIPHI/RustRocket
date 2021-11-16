@@ -57,7 +57,9 @@ pub fn start() -> Result<(), JsValue> {
     let program = make_program(&context, VERT_SOURCE, FRAG_SOURCE)?;
     context.use_program(Some(&program));
 
-    let vertices: [f32; 9] = [-0.7, -0.7, 0.0, 0.7, -0.7, 0.0, 0.0, 0.7, 0.0];
+    let vertices: [f32; 18] =
+        [-0.5, -0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.5, 0.0,
+        0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0];
 
     let vertex_buffer = make_buffer(&context, &vertices);
     let position_attribute_location = context.get_attrib_location(&program, "position");
@@ -109,9 +111,23 @@ pub fn run_frame() {
     let cwidth = gd.canvas.width() as f32;
     let cheight = gd.canvas.height() as f32;
 
-    let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
-    let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
-    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, rot.data.as_slice());
+    // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
+    // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
+
+    let model: glm::Mat4 = glm::identity();
+    let view: glm::Mat4 = glm::look_at(
+        &glm::vec3(0.0,0.0,2.0),
+        &glm::vec3(0.0,0.0,0.0),
+        &glm::vec3(0.0,1.0,0.0)
+    );
+
+    let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 100.0);
+
+    // let mvp: glm::Mat4 = model * view * proj;
+    // let mvp = model * proj;
+    let mvp = proj * view * model;
+
+    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp.data.as_slice());
 
     gd.ctx.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT);
 
