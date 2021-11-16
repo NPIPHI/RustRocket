@@ -33,9 +33,8 @@ fn get_scale() -> Mat4 {
   return glm::scale(&glm::identity(), &Vec3::new(1.0,1.0,1.0));
 }
 
-pub fn get_mvp(csv_row_num: usize, rocket_data: &Vec<RocketData>) -> Mat4 {
-  let rocket_data_row = &rocket_data[csv_row_num];
-  let rocket_translate = get_rocket_translate(rocket_data_row);
+pub fn get_model(rocket_data: &RocketData) -> Mat4 {
+  let rocket_translate = get_rocket_translate(rocket_data);
   let rotate = get_rotate();
   let scale = get_scale();
   return rocket_translate * rotate * scale;

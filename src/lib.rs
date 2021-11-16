@@ -7,6 +7,7 @@ mod webgl;
 
 use webgl::*;
 use nalgebra_glm as glm;
+use mvpmatrix::get_model;
 
 
 static VERT_SOURCE: &str =
@@ -33,6 +34,7 @@ void main() {
 
 use wasm_bindgen::prelude::*;
 use web_sys::*;
+use crate::rocket_data::RocketData;
 
 struct GlobalData {
     pub canvas: HtmlCanvasElement,
@@ -48,6 +50,57 @@ struct GlobalData {
 
 static mut GLOBAL_DATA: Option<GlobalData> = None;
 
+fn make_cylinder(num_pts: u32) -> Vec<glm::Vec3> {
+    let mut cylinder = Vec::new();
+
+    for i in 0..num_pts {
+        let step = 1.0 / (num_pts as f32) * std::f32::consts::PI * 2.0;
+        let theta1 = i as f32 * step;
+        let theta2 = theta1 + step;
+
+        let x1 = theta1.cos();
+        let x2 = theta2.cos();
+        let y1 = -1.0;
+        let y2 = 1.0;
+        let z1 = theta1.sin();
+        let z2 = theta2.sin();
+
+        let p1 = glm::vec3(x1,y1,z1);
+        let p2 = glm::vec3(x1,y2,z1);
+        let p3 = glm::vec3(x2,y2,z2);
+        let p4 = glm::vec3(x2,y1,z2);
+        let c1 = glm::vec3(0.0,y1,0.0);
+        let c2 = glm::vec3(0.0, y2, 0.0);
+        cylinder.push(p1);
+        cylinder.push(p2);
+        cylinder.push(p3);
+        cylinder.push(p3);
+        cylinder.push(p4);
+        cylinder.push(p1);
+
+        cylinder.push(p1);
+        cylinder.push(c1);
+        cylinder.push(p4);
+        cylinder.push(p2);
+        cylinder.push(c2);
+        cylinder.push(p3);
+
+    }
+
+    return cylinder;
+}
+
+fn to_f32_vec(v: &Vec<glm::Vec3>) -> Vec<f32>{
+    let mut ret = Vec::new();
+    for vec in v{
+        ret.push(vec.x);
+        ret.push(vec.y);
+        ret.push(vec.z);
+    }
+
+    return ret;
+}
+
 #[wasm_bindgen]
 pub fn start() -> Result<(), JsValue> {
 
@@ -57,11 +110,14 @@ pub fn start() -> Result<(), JsValue> {
     let program = make_program(&context, VERT_SOURCE, FRAG_SOURCE)?;
     context.use_program(Some(&program));
 
-    let vertices: [f32; 18] =
-        [-0.5, -0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.5, 0.0,
-        0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0];
+    let vertices = to_f32_vec(&make_cylinder(100));
+    // console::log_1(&format!("{:?}", vertices).into());
 
-    let vertex_buffer = make_buffer(&context, &vertices);
+    // let vertices: [f32; 18] =
+    //     [-0.5, -0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.5, 0.0,
+    //     0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0];
+
+    let vertex_buffer = make_buffer(&context, vertices.as_slice());
     let position_attribute_location = context.get_attrib_location(&program, "position");
     let mvp_uniform_location = context.get_uniform_location(&program, "mvp");
 
@@ -114,17 +170,16 @@ pub fn run_frame() {
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    let model: glm::Mat4 = glm::identity();
+    let y = gd.frame_count as f32 / 100.0;
+    let model: glm::Mat4 = glm::translate(&glm::identity(), &glm::vec3(0.0,y, 0.0));
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,0.0,2.0),
-        &glm::vec3(0.0,0.0,0.0),
+        &glm::vec3(0.0,0.0,4.0),
+        &glm::vec3(0.0, y,0.0),
         &glm::vec3(0.0,1.0,0.0)
     );
 
     let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 100.0);
 
-    // let mvp: glm::Mat4 = model * view * proj;
-    // let mvp = model * proj;
     let mvp = proj * view * model;
 
     gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp.data.as_slice());
