@@ -1,28 +1,40 @@
 use web_sys::{window, Response};
 use wasm_bindgen_futures::{JsFuture};
 use wasm_bindgen::{JsValue, JsCast};
-use js_sys::JsString;
+use js_sys::{JsString, ArrayBuffer};
+use embedded_graphics::prelude::*;
 use obj::*;
 use std::io::BufReader;
-use wasm_bindgen::__rt::IntoJsResult;
+use tinybmp::{Bmp, DynamicBmp};
+use embedded_graphics::pixelcolor::Rgb888;
 
-pub async fn load_file(path: &str) -> Result<String, JsValue> {
+pub async fn load_file(path: &str) -> Result<Vec<u8>, JsValue> {
     let response = JsFuture::from(window().unwrap().fetch_with_str(path)).await?;
 
     let response = response.dyn_into::<Response>()?;
 
-    let text = JsFuture::from(response.text()?).await?;
+    let buff = JsFuture::from(response.array_buffer()?).await?;
 
-    Ok(text.dyn_into::<JsString>().unwrap().into())
+    let vec = js_sys::Uint8Array::new(&buff).to_vec();
+
+    Ok(vec)
 }
 
 pub async fn load_obj(path: &str) -> Result<ObjData, JsValue> {
     let str = load_file(path).await?;
 
-    let reader = BufReader::new(str.as_bytes());
+    let reader = BufReader::new(str.as_slice());
     let obj = ObjData::load_buf(reader).ok().ok_or(JsValue::from_str("corrupt file"))?;
 
     return Ok(obj);
+}
+
+pub async fn load_bmp(path: &str) -> Result<(Vec<u8>, i32, i32), JsValue> {
+    let file = load_file(path).await?;
+    let bmp = Bmp::<Rgb888>::from_slice(file.as_slice()).ok().ok_or(JsValue::from_str("bad bmp format"))?;
+
+    let raw = bmp.as_raw();
+    Ok((raw.image_data().iter().map(|x|*x).collect(), raw.header().image_size.width as i32, raw.header().image_size.height as i32))
 }
 
 pub async fn load_mesh(path: &str) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>), JsValue> {

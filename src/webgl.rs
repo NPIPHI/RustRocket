@@ -105,3 +105,30 @@ fn link_program(
 pub fn make_vao(ctx: &WebGl2RenderingContext) -> Option<WebGlVertexArrayObject> {
     ctx.create_vertex_array()
 }
+
+pub fn make_texture(ctx: &WebGl2RenderingContext, data: &[u8], width: i32, height: i32) -> Option<WebGlTexture> {
+    let texture = ctx.create_texture();
+    ctx.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture.as_ref());
+
+    ctx.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
+        WebGl2RenderingContext::TEXTURE_2D, //target
+        0, //level
+        WebGl2RenderingContext::RGB as i32, //internal format
+        width, //width
+        height, //height
+        0, //border
+        WebGl2RenderingContext::RGB, //format
+        WebGl2RenderingContext::UNSIGNED_BYTE, //type
+        Some(data) //data
+    ).ok()?;
+
+    ctx.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+// gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
+    ctx.tex_parameteri(WebGl2RenderingContext::TEXTURE_2D, WebGl2RenderingContext::TEXTURE_MIN_FILTER, WebGl2RenderingContext::LINEAR as i32);
+// Prevents s-coordinate wrapping (repeating).
+    ctx.tex_parameteri(WebGl2RenderingContext::TEXTURE_2D, WebGl2RenderingContext::TEXTURE_WRAP_S, WebGl2RenderingContext::CLAMP_TO_EDGE as i32);
+// Prevents t-coordinate wrapping (repeating).
+    ctx.tex_parameteri(WebGl2RenderingContext::TEXTURE_2D, WebGl2RenderingContext::TEXTURE_WRAP_T, WebGl2RenderingContext::CLAMP_TO_EDGE as i32);
+
+    return texture;
+}

@@ -23,11 +23,15 @@ static VERT_SOURCE: &str =
 
 in vec3 position;
 in vec3 normal;
+in vec2 uv;
+
 out vec3 frag_normal;
+out vec2 frag_uv;
 uniform mat4 mvp;
 
 void main() {
     frag_normal = normal;
+    frag_uv = uv;
     gl_Position = mvp * vec4(position, 1);
 }
 "##;
@@ -37,14 +41,17 @@ r##"#version 300 es
 
 precision highp float;
 in vec3 frag_normal;
-out vec4 outColor;
+in vec2 frag_uv;
 
+out vec4 outColor;
 vec3 light = vec3(0.7,0.7,0);
+
+uniform sampler2D tex;
 
 void main() {
     float intensity = max(dot(light, frag_normal), 0.0) + 0.5;
-    vec3 color = vec3(0.5, 0.5, 0.5) * intensity;
-    outColor = vec4(color, 1);
+    vec4 color = texture(tex, frag_uv);
+    outColor = vec4(color.zyx * intensity, 1);
 }
 "##;
 
@@ -119,17 +126,24 @@ pub async fn start() -> Result<(), JsValue> {
     context.use_program(Some(&program));
 
     let (vertices, normals, uvs) = load_mesh("Ares_I_-_OBJ/Ares I/ares_I.obj").await?;
+    let (texture_data, texture_width, texture_height) = load_bmp("Ares_I_-_OBJ/Ares I/ares_I.bmp").await?;
+    let texture = make_texture(&context, texture_data.as_slice(), texture_width, texture_height);
 
     let vertex_buffer = make_buffer(&context, vertices.as_slice());
     let normal_buffer = make_buffer(&context, normals.as_slice());
+    let uv_buffer = make_buffer(&context, uvs.as_slice());
+
     let position_attribute_location = context.get_attrib_location(&program, "position");
     let normal_attribute_location = context.get_attrib_location(&program, "normal");
+    let uv_attribute_location = context.get_attrib_location(&program, "uv");
+    let texture_uniform_location = context.get_uniform_location(&program, "tex");
     let mvp_uniform_location = context.get_uniform_location(&program, "mvp");
 
     let vao = make_vao(&context).unwrap();
     context.bind_vertex_array(Some(&vao));
 
     context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&vertex_buffer));
+
     context.vertex_attrib_pointer_with_i32(0, //index
                                            3, //count per vertex
                                            WebGl2RenderingContext::FLOAT,
@@ -139,6 +153,8 @@ pub async fn start() -> Result<(), JsValue> {
     );
 
     context.enable_vertex_attrib_array(position_attribute_location as u32);
+
+    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&normal_buffer));
 
     context.vertex_attrib_pointer_with_i32(1, //index
                                            3, //count per vertex
@@ -150,7 +166,26 @@ pub async fn start() -> Result<(), JsValue> {
 
     context.enable_vertex_attrib_array(normal_attribute_location as u32);
 
+    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&uv_buffer));
+
+    context.vertex_attrib_pointer_with_i32(2, //index
+                                           2, //count per vertex
+                                           WebGl2RenderingContext::FLOAT,
+                                           false, //normalized
+                                           0, //stride bytes, 0 = default
+                                           0 //offset bytes
+    );
+
+    context.enable_vertex_attrib_array(uv_attribute_location as u32);
+
+    context.active_texture(WebGl2RenderingContext::TEXTURE0);
+
+    context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture.as_ref());
+
+    context.uniform1i(texture_uniform_location.as_ref(), 0);
+
     let vert_count = (vertices.len() / 3) as i32;
+
 
     context.clear_color(0.0, 0.0, 0.0, 1.0);
 
@@ -180,8 +215,10 @@ pub fn run_frame() {
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    let z = gd.frame_count as f32 / 10.0;
-    let model: glm::Mat4 = glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z));
+    let z = gd.frame_count as f32 / 100.0;
+    let model: glm::Mat4 =
+        glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, 0.0)) *
+        glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
     let view: glm::Mat4 = glm::look_at(
         &glm::vec3(0.0,50.0,50.0),
         &glm::vec3(0.0, 0.0, z+50.0),
