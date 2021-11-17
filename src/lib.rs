@@ -4,13 +4,11 @@ mod csvreader;
 mod mvpmatrix;
 mod rocket_data;
 mod webgl;
-mod triangle;
 mod load_model;
 
 use webgl::*;
 use nalgebra_glm as glm;
 use mvpmatrix::get_model;
-use triangle::Triangle;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 use js_sys::JsString;
@@ -69,51 +67,6 @@ struct GlobalData {
 }
 
 static mut GLOBAL_DATA: Option<GlobalData> = None;
-
-fn make_cylinder(num_pts: u32) -> Vec<Triangle> {
-    let mut cylinder = Vec::new();
-
-    for i in 0..num_pts {
-        let step = 1.0 / (num_pts as f32) * std::f32::consts::PI * 2.0;
-        let theta1 = i as f32 * step;
-        let theta2 = theta1 + step;
-
-        let x1 = theta1.cos();
-        let x2 = theta2.cos();
-        let y1 = -1.0;
-        let y2 = 1.0;
-        let z1 = theta1.sin();
-        let z2 = theta2.sin();
-
-        let p1 = glm::vec3(x1,y1,z1);
-        let p2 = glm::vec3(x1,y2,z1);
-        let p3 = glm::vec3(x2,y2,z2);
-        let p4 = glm::vec3(x2,y1,z2);
-        let c1 = glm::vec3(0.0,y1,0.0);
-        let c2 = glm::vec3(0.0, y2 + (y2-y1)*2.0, 0.0);
-        cylinder.push(Triangle::new(p3, p1, p2));
-        cylinder.push(Triangle::new(p1,p3,p4));
-        cylinder.push(Triangle::new(p1,c1,p4));
-        cylinder.push(Triangle::new(p2,c2,p3));
-    }
-
-    return cylinder;
-}
-
-fn to_f32_vec(v: &Vec<Triangle>) -> (Vec<f32>, Vec<f32>){
-    let mut vertices: Vec<f32> = Vec::new();
-    let mut normals: Vec<f32> = Vec::new();
-    for (verts, norms) in v.iter().map(|t| t.to_array()) {
-        for f in verts {
-            vertices.push(f);
-        }
-        for f in norms {
-            normals.push(f);
-        }
-    }
-
-    return (vertices, normals);
-}
 
 #[wasm_bindgen]
 pub async fn start() -> Result<(), JsValue> {
@@ -179,9 +132,7 @@ pub async fn start() -> Result<(), JsValue> {
     context.enable_vertex_attrib_array(uv_attribute_location as u32);
 
     context.active_texture(WebGl2RenderingContext::TEXTURE0);
-
     context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture.as_ref());
-
     context.uniform1i(texture_uniform_location.as_ref(), 0);
 
     let vert_count = (vertices.len() / 3) as i32;
@@ -221,7 +172,7 @@ pub fn run_frame() {
         glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
     let view: glm::Mat4 = glm::look_at(
         &glm::vec3(0.0,50.0,50.0),
-        &glm::vec3(0.0, 0.0, z+50.0),
+        &glm::vec3(0.0, 0.0, 50.0),
         &glm::vec3(0.0,0.0,1.0)
     );
 
