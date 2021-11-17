@@ -95,45 +95,13 @@ pub async fn start() -> Result<(), JsValue> {
     let vao = make_vao(&context).unwrap();
     context.bind_vertex_array(Some(&vao));
 
-    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&vertex_buffer));
+    bind_shader_array(&context, Some(&vertex_buffer), position_attribute_location as u32, 3);
 
-    context.vertex_attrib_pointer_with_i32(0, //index
-                                           3, //count per vertex
-                                           WebGl2RenderingContext::FLOAT,
-                                           false, //normalized
-                                           0, //stride bytes, 0 = default
-                                           0 //offset bytes
-    );
+    bind_shader_array(&context, Some(&normal_buffer), normal_attribute_location as u32, 3);
 
-    context.enable_vertex_attrib_array(position_attribute_location as u32);
+    bind_shader_array(&context, Some(&uv_buffer), uv_attribute_location as u32, 2);
 
-    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&normal_buffer));
-
-    context.vertex_attrib_pointer_with_i32(1, //index
-                                           3, //count per vertex
-                                           WebGl2RenderingContext::FLOAT,
-                                           false, //normalized
-                                           0, //stride bytes, 0 = default
-                                           0 //offset bytes
-    );
-
-    context.enable_vertex_attrib_array(normal_attribute_location as u32);
-
-    context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&uv_buffer));
-
-    context.vertex_attrib_pointer_with_i32(2, //index
-                                           2, //count per vertex
-                                           WebGl2RenderingContext::FLOAT,
-                                           false, //normalized
-                                           0, //stride bytes, 0 = default
-                                           0 //offset bytes
-    );
-
-    context.enable_vertex_attrib_array(uv_attribute_location as u32);
-
-    context.active_texture(WebGl2RenderingContext::TEXTURE0);
-    context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture.as_ref());
-    context.uniform1i(texture_uniform_location.as_ref(), 0);
+    bind_shader_texture(&context, texture.as_ref(), texture_uniform_location.as_ref(), 0);
 
     let vert_count = (vertices.len() / 3) as i32;
 

@@ -132,3 +132,23 @@ pub fn make_texture(ctx: &WebGl2RenderingContext, data: &[u8], width: i32, heigh
 
     return texture;
 }
+
+pub fn bind_shader_array(ctx: &WebGl2RenderingContext, buffer: Option<&WebGlBuffer>, location: u32, float_per_vertex: i32){
+    ctx.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, buffer);
+
+    ctx.vertex_attrib_pointer_with_i32(location, //index
+                                           float_per_vertex, //count per vertex
+                                           WebGl2RenderingContext::FLOAT,
+                                           false, //normalized
+                                           0, //stride bytes, 0 = default
+                                           0 //offset bytes
+    );
+
+    ctx.enable_vertex_attrib_array(location);
+}
+
+pub fn bind_shader_texture(ctx: &WebGl2RenderingContext, texture: Option<&WebGlTexture>, location: Option<&web_sys::WebGlUniformLocation>, texture_binding: u32){
+    ctx.active_texture(WebGl2RenderingContext::TEXTURE0 + texture_binding);
+    ctx.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture);
+    ctx.uniform1i(location, texture_binding as i32);
+}
