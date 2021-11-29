@@ -25,8 +25,9 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    const csv = await (await fetch("csv/trimmed.csv")).text();
     await init()
-    await start()
+    await start(csv)
 
     function main_loop(){
         run_frame();

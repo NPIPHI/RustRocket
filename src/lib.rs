@@ -57,9 +57,8 @@ void main() {
 struct GlobalData {
     pub canvas: HtmlCanvasElement,
     pub ctx: WebGl2RenderingContext,
-    pub program: WebGlProgram,
-    pub vertex_array: WebGlBuffer,
-    pub vao: WebGlVertexArrayObject,
+    pub rocket_program: WebGlProgram,
+    pub rocket_vao: WebGlVertexArrayObject,
     pub mvp_location: Option<WebGlUniformLocation>,
     pub vertex_location: i32,
     pub vertex_count: i32,
@@ -69,7 +68,7 @@ struct GlobalData {
 static mut GLOBAL_DATA: Option<GlobalData> = None;
 
 #[wasm_bindgen]
-pub async fn start() -> Result<(), JsValue> {
+pub async fn start(csv: String) -> Result<(), JsValue> {
     let canvas = get_canvas().unwrap();
     let context = get_context(&canvas).unwrap();
     context.enable(WebGl2RenderingContext::DEPTH_TEST);
@@ -112,9 +111,8 @@ pub async fn start() -> Result<(), JsValue> {
         GLOBAL_DATA = Some(GlobalData{
             canvas: canvas,
             ctx: context,
-            program,
-            vertex_array: vertex_buffer,
-            vao,
+            rocket_program: program,
+            rocket_vao: vao,
             mvp_location: mvp_uniform_location,
             vertex_location: position_attribute_location,
             vertex_count: (vertices.len() / 3) as i32,
