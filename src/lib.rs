@@ -57,15 +57,44 @@ void main() {
 struct GlobalData {
     pub canvas: HtmlCanvasElement,
     pub ctx: WebGl2RenderingContext,
-    pub rocket_program: WebGlProgram,
+    pub program: WebGlProgram,
     pub rocket_vao: WebGlVertexArrayObject,
+    pub planet_vao: WebGlVertexArrayObject,
     pub mvp_location: Option<WebGlUniformLocation>,
-    pub vertex_location: i32,
-    pub vertex_count: i32,
+    pub rocket_vertex_count: i32,
+    pub planet_vertex_count: i32,
     pub frame_count: u64,
 }
 
 static mut GLOBAL_DATA: Option<GlobalData> = None;
+
+async fn make_obj_vao(context: &WebGl2RenderingContext, program: &WebGlProgram, obj_path: &str, bmp_path: &str) -> Result<(WebGlVertexArrayObject, i32), JsValue> {
+    let (vertices, normals, uvs) = load_mesh(obj_path).await?;
+    let (texture_data, texture_width, texture_height) = load_bmp(bmp_path).await?;
+    let texture = make_texture(context, texture_data.as_slice(), texture_width, texture_height);
+
+    let position_attribute_location = context.get_attrib_location(&program, "position");
+    let normal_attribute_location = context.get_attrib_location(&program, "normal");
+    let uv_attribute_location = context.get_attrib_location(&program, "uv");
+    let texture_uniform_location = context.get_uniform_location(&program, "tex");
+
+    let vertex_buffer = make_buffer(&context, vertices.as_slice());
+    let normal_buffer = make_buffer(&context, normals.as_slice());
+    let uv_buffer = make_buffer(&context, uvs.as_slice());
+
+    let vao = make_vao(context).unwrap();
+    context.bind_vertex_array(Some(&vao));
+
+    bind_shader_array(context, Some(&vertex_buffer), position_attribute_location as u32, 3);
+
+    bind_shader_array(context, Some(&normal_buffer), normal_attribute_location as u32, 3);
+
+    bind_shader_array(context, Some(&uv_buffer), uv_attribute_location as u32, 2);
+
+    bind_shader_texture(context, texture.as_ref(), texture_uniform_location.as_ref(), 0);
+
+    return Ok((vao, (vertices.len()/3) as i32));
+}
 
 #[wasm_bindgen]
 pub async fn start(csv: String) -> Result<(), JsValue> {
@@ -77,32 +106,15 @@ pub async fn start(csv: String) -> Result<(), JsValue> {
     let program = make_program(&context, VERT_SOURCE, FRAG_SOURCE)?;
     context.use_program(Some(&program));
 
-    let (vertices, normals, uvs) = load_mesh("Ares_I_-_OBJ/Ares I/ares_I.obj").await?;
-    let (texture_data, texture_width, texture_height) = load_bmp("Ares_I_-_OBJ/Ares I/ares_I.bmp").await?;
-    let texture = make_texture(&context, texture_data.as_slice(), texture_width, texture_height);
+    let (rocket_vao, rocket_vert_count) = make_obj_vao(&context, &program,
+                                  "Models/Ares_I_-_OBJ/Ares I/ares_I.obj",
+                                  "Models/Ares_I_-_OBJ/Ares I/ares_I.bmp").await?;
 
-    let vertex_buffer = make_buffer(&context, vertices.as_slice());
-    let normal_buffer = make_buffer(&context, normals.as_slice());
-    let uv_buffer = make_buffer(&context, uvs.as_slice());
+    let (planet_vao, planet_vert_count) = make_obj_vao(&context, &program,
+                                 "Models/Earth/Earth_2K.obj",
+                                 "Models/Earth/Textures/Diffuse_2K.bmp").await?;
 
-    let position_attribute_location = context.get_attrib_location(&program, "position");
-    let normal_attribute_location = context.get_attrib_location(&program, "normal");
-    let uv_attribute_location = context.get_attrib_location(&program, "uv");
-    let texture_uniform_location = context.get_uniform_location(&program, "tex");
     let mvp_uniform_location = context.get_uniform_location(&program, "mvp");
-
-    let vao = make_vao(&context).unwrap();
-    context.bind_vertex_array(Some(&vao));
-
-    bind_shader_array(&context, Some(&vertex_buffer), position_attribute_location as u32, 3);
-
-    bind_shader_array(&context, Some(&normal_buffer), normal_attribute_location as u32, 3);
-
-    bind_shader_array(&context, Some(&uv_buffer), uv_attribute_location as u32, 2);
-
-    bind_shader_texture(&context, texture.as_ref(), texture_uniform_location.as_ref(), 0);
-
-    let vert_count = (vertices.len() / 3) as i32;
 
 
     context.clear_color(0.0, 0.0, 0.0, 1.0);
@@ -111,11 +123,12 @@ pub async fn start(csv: String) -> Result<(), JsValue> {
         GLOBAL_DATA = Some(GlobalData{
             canvas: canvas,
             ctx: context,
-            rocket_program: program,
-            rocket_vao: vao,
+            program: program,
+            rocket_vao: rocket_vao,
+            planet_vao: planet_vao,
             mvp_location: mvp_uniform_location,
-            vertex_location: position_attribute_location,
-            vertex_count: (vertices.len() / 3) as i32,
+            rocket_vertex_count: rocket_vert_count,
+            planet_vertex_count: planet_vert_count,
             frame_count: 0
 
         });
@@ -136,9 +149,15 @@ pub fn run_frame() {
     let model: glm::Mat4 =
         glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, 0.0)) *
         glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
+    // let view: glm::Mat4 = glm::look_at(
+    //     &glm::vec3(0.0,50.0,50.0),
+    //     &glm::vec3(0.0, 0.0, 50.0),
+    //     &glm::vec3(0.0,0.0,1.0)
+    // );
+
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,50.0,50.0),
-        &glm::vec3(0.0, 0.0, 50.0),
+        &glm::vec3(0.0,5.0,5.0),
+        &glm::vec3(0.0, 0.0, 0.0),
         &glm::vec3(0.0,0.0,1.0)
     );
 
@@ -146,11 +165,13 @@ pub fn run_frame() {
 
     let mvp = proj * view * model;
 
+    gd.ctx.bind_vertex_array(Some(&gd.planet_vao));
+
     gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp.data.as_slice());
 
     gd.ctx.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT);
 
-    gd.ctx.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, gd.vertex_count);
+    gd.ctx.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, gd.rocket_vertex_count);
 
     gd.frame_count += 1;
 

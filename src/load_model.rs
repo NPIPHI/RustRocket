@@ -29,7 +29,7 @@ pub async fn load_obj(path: &str) -> Result<ObjData, JsValue> {
     return Ok(obj);
 }
 
-pub async fn load_bmp(path: &str) -> Result<(Vec<u8>, i32, i32), JsValue> {
+pub async fn  load_bmp(path: &str) -> Result<(Vec<u8>, i32, i32), JsValue> {
     let file = load_file(path).await?;
     let bmp = Bmp::<Rgb888>::from_slice(file.as_slice()).ok().ok_or(JsValue::from_str("bad bmp format"))?;
 
@@ -47,18 +47,52 @@ pub async fn load_mesh(path: &str) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>), JsV
     for object in obj.objects {
         for group in object.groups {
             for poly in group.polys {
-                for vert in poly.0 {
-                    let pos_idx = vert.0;
-                    let uv_idx = vert.1.unwrap();
-                    let norm_idx = vert.2.unwrap();
-                    verts.push(obj.position[pos_idx][0]);
-                    verts.push(obj.position[pos_idx][1]);
-                    verts.push(obj.position[pos_idx][2]);
-                    norms.push(obj.normal[norm_idx][0]);
-                    norms.push(obj.normal[norm_idx][1]);
-                    norms.push(obj.normal[norm_idx][2]);
-                    uvs.push(obj.texture[uv_idx][0]);
-                    uvs.push(obj.texture[uv_idx][1]);
+                let idxs = poly.0;
+                for vert in 0..(idxs.len() - 2) {
+                    let start_vert = idxs[0];
+                    let v1 = idxs[vert + 1];
+                    let v2 = idxs[vert + 2];
+                    {
+                        let pos_idx = start_vert.0;
+                        let norm_idx = start_vert.2.unwrap();
+                        let uv_idx = start_vert.1.unwrap();
+                        verts.push(obj.position[pos_idx][0]);
+                        verts.push(obj.position[pos_idx][1]);
+                        verts.push(obj.position[pos_idx][2]);
+                        norms.push(obj.normal[norm_idx][0]);
+                        norms.push(obj.normal[norm_idx][1]);
+                        norms.push(obj.normal[norm_idx][2]);
+                        uvs.push(obj.texture[uv_idx][0]);
+                        uvs.push(obj.texture[uv_idx][1]);
+                    }
+                    {
+                        let pos_idx = v1.0;
+                        let norm_idx = v1.2.unwrap();
+                        let uv_idx = v1.1.unwrap();
+                        verts.push(obj.position[pos_idx][0]);
+                        verts.push(obj.position[pos_idx][1]);
+                        verts.push(obj.position[pos_idx][2]);
+                        norms.push(obj.normal[norm_idx][0]);
+                        norms.push(obj.normal[norm_idx][1]);
+                        norms.push(obj.normal[norm_idx][2]);
+                        uvs.push(obj.texture[uv_idx][0]);
+                        uvs.push(obj.texture[uv_idx][1]);
+                    }
+                    {
+                        let pos_idx = v2.0;
+                        let norm_idx = v2.2.unwrap();
+                        let uv_idx = v2.1.unwrap();
+                        verts.push(obj.position[pos_idx][0]);
+                        verts.push(obj.position[pos_idx][1]);
+                        verts.push(obj.position[pos_idx][2]);
+                        norms.push(obj.normal[norm_idx][0]);
+                        norms.push(obj.normal[norm_idx][1]);
+                        norms.push(obj.normal[norm_idx][2]);
+                        uvs.push(obj.texture[uv_idx][0]);
+                        uvs.push(obj.texture[uv_idx][1]);
+                    }
+
+
                 }
             }
         }
