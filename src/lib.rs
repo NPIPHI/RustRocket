@@ -155,30 +155,38 @@ pub fn run_frame() {
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    let z = gd.frame_count as f32 / 100.0;
-    let model: glm::Mat4 =
-        glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, 0.0)) *
-        glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
+    let z = gd.frame_count as f32;
+    let rocket_model: glm::Mat4 =
+        glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z)) *
+        glm::scale(&glm::identity(), &glm::vec3(0.1,0.1,0.1));
+        // glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
+
+    let planet_model: glm::Mat4 =
+            glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, -100.0)) *
+            glm::scale(&glm::identity(), &glm::vec3(100.0,100.0,100.0)) *
+            glm::rotate(&glm::identity(), 2.0, &glm::vec3(0.0,-0.2,1.0));
 
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,50.0,50.0),
-        &glm::vec3(0.0, 0.0, 0.0),
+        &glm::vec3(0.0,50.0,50.0 + z),
+        &glm::vec3(0.0, 0.0, z),
         &glm::vec3(0.0,0.0,1.0)
     );
 
-    let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 1000.0);
+    let proj: glm::Mat4 = glm::perspective(cwidth/cheight, 45.0, 0.1, 100000.0);
 
-    let mvp = proj * view * model;
+    let mvp_rocket = proj * view * rocket_model;
+    let mvp_planet = proj * view * planet_model;
+
     gd.ctx.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT);
 
     gd.ctx.bind_vertex_array(Some(&gd.rocket_vao));
     bind_shader_texture(&gd.ctx, gd.rocket_tex.as_ref(), gd.tex_location.as_ref(), 0);
-    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp.data.as_slice());
+    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp_rocket.data.as_slice());
     gd.ctx.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, gd.rocket_vertex_count);
     gd.ctx.bind_vertex_array(Some(&gd.planet_vao));
 
     bind_shader_texture(&gd.ctx, gd.planet_tex.as_ref(), gd.tex_location.as_ref(), 0);
-    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp.data.as_slice());
+    gd.ctx.uniform_matrix4fv_with_f32_array(gd.mvp_location.as_ref(), false, mvp_planet.data.as_slice());
     gd.ctx.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, gd.planet_vertex_count);
 
     gd.frame_count += 1;
