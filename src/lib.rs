@@ -168,13 +168,29 @@ pub fn run_frame() {
 
     let rocket_data_row_index = get_rocket_data_row_index(gd.frame_count);
     console::log_1(&JsValue::from_f64(rocket_data_row_index as f64));
-    let rocket_data_row = unsafe { &ROCKET_DATA_VEC[rocket_data_row_index] };
-    let z = (rocket_data_row.barometer_altitude * 1.0) as f32;
+    let rd = unsafe { &ROCKET_DATA_VEC[rocket_data_row_index] };
+
+    let to_angle = |a: f64, b: f64| {
+        let angle = (rd.mx / rd.mz).atan() as f32;
+        let angle = if rd.mz > 0.0 { angle } else  { angle + 3.1415};
+        return angle;
+    };
+
+    let roll = to_angle(rd.mx, rd.mz);
+    // let pitch = to_angle(rd.my, rd.mx);
+    // let yaw = to_angle(rd.mz, rd.my);
+
+
+    let z = (rd.barometer_altitude * 1.0) as f32;
     // let z = gd.frame_count as f32;
     let rocket_model: glm::Mat4 =
         glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z)) *
-        glm::scale(&glm::identity(), &glm::vec3(0.1,0.1,0.1));
-        // glm::rotate(&glm::identity(), z, &glm::vec3(0.0, 0.0, 1.0));
+        glm::scale(&glm::identity(), &glm::vec3(0.1,0.1,0.1)) *
+        // glm::rotate(&glm::identity(), pitch, &glm::vec3(0.0, 1.0, 0.0)) *
+        // glm::rotate(&glm::identity(), yaw, &glm::vec3(1.0, 0.0, 0.0)) *
+        glm::rotate(&glm::identity(), roll, &glm::vec3(0.0, 0.0, 1.0));
+
+
 
     let planet_model: glm::Mat4 =
             glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, -100.0)) *
@@ -182,7 +198,7 @@ pub fn run_frame() {
             glm::rotate(&glm::identity(), 2.0, &glm::vec3(0.0,-0.2,1.0));
     
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,50.0,50.0 + z),
+        &glm::vec3(0.0,7.0,20.0 + z),
         &glm::vec3(0.0, 0.0, z),
         &glm::vec3(0.0,0.0,1.0)
     );
