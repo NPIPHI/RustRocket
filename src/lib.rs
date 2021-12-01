@@ -167,8 +167,15 @@ pub fn run_frame() {
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
     let rocket_data_row_index = get_rocket_data_row_index(gd.frame_count);
-    console::log_1(&JsValue::from_f64(rocket_data_row_index as f64));
-    let rd = unsafe { &ROCKET_DATA_VEC[rocket_data_row_index] };
+    // console::log_1(&JsValue::from_f64(rocket_data_row_index as f64));
+    let rd;
+    unsafe {
+        if rocket_data_row_index < ROCKET_DATA_VEC.len() {
+            rd = &ROCKET_DATA_VEC[rocket_data_row_index];
+        } else {
+            rd = &ROCKET_DATA_VEC[ROCKET_DATA_VEC.len() - 1];
+        }
+    }
 
     let to_angle = |a: f64, b: f64| {
         let angle = (rd.mx / rd.mz).atan() as f32;
@@ -190,12 +197,10 @@ pub fn run_frame() {
         // glm::rotate(&glm::identity(), yaw, &glm::vec3(1.0, 0.0, 0.0)) *
         glm::rotate(&glm::identity(), roll, &glm::vec3(0.0, 0.0, 1.0));
 
-
-
     let planet_model: glm::Mat4 =
-            glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, -100.0)) *
-            glm::scale(&glm::identity(), &glm::vec3(100.0,100.0,100.0)) *
-            glm::rotate(&glm::identity(), 2.0, &glm::vec3(0.0,-0.2,1.0));
+        glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, -100.0)) *
+        glm::scale(&glm::identity(), &glm::vec3(100.0,100.0,100.0)) *
+        glm::rotate(&glm::identity(), 2.0, &glm::vec3(0.0,-0.2,1.0));
     
     let view: glm::Mat4 = glm::look_at(
         &glm::vec3(0.0,7.0,20.0 + z),
@@ -227,7 +232,7 @@ pub fn run_frame() {
     }
 
     pub fn get_rocket_data_row_index(frame_count: u64) -> usize {
-        let time_seconds = START_TIME_SECONDS + (frame_count as f64) / FRAMES_PER_SECOND;
+        let time_seconds = START_TIME_SECONDS + ((frame_count as f64) / FRAMES_PER_SECOND) * TIME_SCALE;
         return (time_seconds / ROCKET_DATA_TIMESTEP_SECONDS).round() as usize;
     }
 }
