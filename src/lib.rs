@@ -72,8 +72,10 @@ struct GlobalData {
 static mut GLOBAL_DATA: Option<GlobalData> = None;
 
 static mut ROCKET_DATA_VEC: Vec<RocketData> = Vec::<RocketData>::new();
+const ROCKET_DATA_TIMESTEP_SECONDS: f64 = 0.01;
+const START_TIME_SECONDS: f64 = 7.0;
 const TIME_SCALE: f64 = 1.0;
-const FRAMES_PER_SECOND: u32 = 60;
+const FRAMES_PER_SECOND: f64 = 60.0;
 
 async fn make_obj_vao(context: &WebGl2RenderingContext, program: &WebGlProgram, obj_path: &str) -> Result<(WebGlVertexArrayObject, i32), JsValue> {
     let (vertices, normals, uvs) = load_mesh(obj_path).await?;
@@ -107,10 +109,10 @@ async fn make_texture_bmp(context: &WebGl2RenderingContext, bmp_path: &str) -> R
 
 #[wasm_bindgen]
 pub async fn start(csv: String) -> Result<(), JsValue> {
-    console::log_1(&JsValue::from_str("HERE 1"));
+    console::log_1(&JsValue::from_str("Start processing CSV"));
     unsafe {ROCKET_DATA_VEC = csvreader::get_csv_vec(csv.as_bytes()).unwrap()};
     // unsafe {ROCKET_DATA_VEC = csvreader::get_rocket_data().unwrap();}
-    console::log_1(&JsValue::from_str("HERE 2"));
+    console::log_1(&JsValue::from_str("Finish processing CSV"));
     
     let canvas = get_canvas().unwrap();
     let context = get_context(&canvas).unwrap();
@@ -164,9 +166,10 @@ pub fn run_frame() {
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    console::log_1(&JsValue::from_f64(gd.frame_count as f64));
-    let rocket_data_row = unsafe { &ROCKET_DATA_VEC[gd.frame_count as usize] };
-    let z = rocket_data_row.altitude as f32;
+    let rocket_data_row_index = get_rocket_data_row_index(gd.frame_count);
+    console::log_1(&JsValue::from_f64(rocket_data_row_index as f64));
+    let rocket_data_row = unsafe { &ROCKET_DATA_VEC[rocket_data_row_index] };
+    let z = (rocket_data_row.barometer_altitude * 1.0) as f32;
     // let z = gd.frame_count as f32;
     let rocket_model: glm::Mat4 =
         glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z)) *
@@ -205,5 +208,10 @@ pub fn run_frame() {
 
     unsafe {
         GLOBAL_DATA = Some(gd);
+    }
+
+    pub fn get_rocket_data_row_index(frame_count: u64) -> usize {
+        let time_seconds = START_TIME_SECONDS + (frame_count as f64) / FRAMES_PER_SECOND;
+        return (time_seconds / ROCKET_DATA_TIMESTEP_SECONDS).round() as usize;
     }
 }

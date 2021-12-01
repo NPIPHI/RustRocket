@@ -20,7 +20,7 @@ pub struct RocketData {
     position_lock: u32,
     temperature: f64,
     pressure: f64,
-    barometer_altitude: f64,
+    pub barometer_altitude: f64,
     rocket_state: u32,
     l1_extension: f64,
     l2_extension: f64,
