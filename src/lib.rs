@@ -71,6 +71,10 @@ struct GlobalData {
 
 static mut GLOBAL_DATA: Option<GlobalData> = None;
 
+static mut ROCKET_DATA_VEC: Vec<RocketData> = Vec::<RocketData>::new();
+const TIME_SCALE: f64 = 1.0;
+const FRAMES_PER_SECOND: u32 = 60;
+
 async fn make_obj_vao(context: &WebGl2RenderingContext, program: &WebGlProgram, obj_path: &str) -> Result<(WebGlVertexArrayObject, i32), JsValue> {
     let (vertices, normals, uvs) = load_mesh(obj_path).await?;
 
@@ -103,6 +107,10 @@ async fn make_texture_bmp(context: &WebGl2RenderingContext, bmp_path: &str) -> R
 
 #[wasm_bindgen]
 pub async fn start(csv: String) -> Result<(), JsValue> {
+    console::log_1(&JsValue::from_str("HERE 1"));
+    unsafe {ROCKET_DATA_VEC = csvreader::get_rocket_data().unwrap();}
+    console::log_1(&JsValue::from_str("HERE 2"));
+    
     let canvas = get_canvas().unwrap();
     let context = get_context(&canvas).unwrap();
     context.enable(WebGl2RenderingContext::DEPTH_TEST);
@@ -148,14 +156,17 @@ pub async fn start(csv: String) -> Result<(), JsValue> {
 
 #[wasm_bindgen]
 pub fn run_frame() {
-    let mut gd = unsafe {GLOBAL_DATA.take().unwrap()};
+    let mut gd = unsafe { GLOBAL_DATA.take().unwrap() };
     let cwidth = gd.canvas.width() as f32;
     let cheight = gd.canvas.height() as f32;
 
     // let rot = glm::rotate(&glm::identity(), gd.frame_count as f32 / 100.0, &glm::vec3(0.0, 0.0, 1.0));
     // let perspective = glm::perspective(cheight/cwidth, 90.0, 0.1, 100.0);
 
-    let z = gd.frame_count as f32;
+    console::log_1(&JsValue::from_f64(gd.frame_count as f64));
+    let rocket_data_row = unsafe { &ROCKET_DATA_VEC[gd.frame_count as usize] };
+    let z = rocket_data_row.altitude as f32;
+    // let z = gd.frame_count as f32;
     let rocket_model: glm::Mat4 =
         glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, z)) *
         glm::scale(&glm::identity(), &glm::vec3(0.1,0.1,0.1));
@@ -165,7 +176,7 @@ pub fn run_frame() {
             glm::translate(&glm::identity(), &glm::vec3(0.0, 0.0, -100.0)) *
             glm::scale(&glm::identity(), &glm::vec3(100.0,100.0,100.0)) *
             glm::rotate(&glm::identity(), 2.0, &glm::vec3(0.0,-0.2,1.0));
-
+    
     let view: glm::Mat4 = glm::look_at(
         &glm::vec3(0.0,50.0,50.0 + z),
         &glm::vec3(0.0, 0.0, z),

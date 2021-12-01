@@ -8,22 +8,8 @@ use serde::de::DeserializeOwned;
 use crate::rocket_data::RocketData;
 
 const CSV_FILE: &str = "csv/trimmed.csv";
-// pub static ROCKET_DATA: Vec<RocketData> = get_rocket_data().unwrap();
 
 pub fn get_rocket_data() -> Result<Vec<RocketData>, Box<dyn Error>> {
-    /*
-    // Build the CSV reader and iterate over each record.
-    let file = File::open(CSV_FILE)?;
-    let mut rdr = csv::Reader::from_reader(file);
-    for result in rdr.records() {
-        // The iterator yields Result<StringRecord, Error>, so we check the
-        // error here.
-        let record = result?;
-        println!("{:?}", record);
-    }
-    let x: Vec<RocketData> = parse_csv(file)?;
-    return Ok(());
-    */
     let file = File::open(CSV_FILE)?;
     return Ok(get_csv_vec(file).unwrap());
 }
