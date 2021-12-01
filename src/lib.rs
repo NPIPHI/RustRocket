@@ -108,7 +108,8 @@ async fn make_texture_bmp(context: &WebGl2RenderingContext, bmp_path: &str) -> R
 #[wasm_bindgen]
 pub async fn start(csv: String) -> Result<(), JsValue> {
     console::log_1(&JsValue::from_str("HERE 1"));
-    unsafe {ROCKET_DATA_VEC = csvreader::get_rocket_data().unwrap();}
+    unsafe {ROCKET_DATA_VEC = csvreader::get_csv_vec(csv.as_bytes()).unwrap()};
+    // unsafe {ROCKET_DATA_VEC = csvreader::get_rocket_data().unwrap();}
     console::log_1(&JsValue::from_str("HERE 2"));
     
     let canvas = get_canvas().unwrap();
