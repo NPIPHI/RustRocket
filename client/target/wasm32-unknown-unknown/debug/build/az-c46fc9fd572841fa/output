@@ -1,0 +1,6 @@
+$ mkdir -p "C:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\wasm32-unknown-unknown\\debug\\build\\az-c46fc9fd572841fa\\out\\try_track_caller"
+$ cd "C:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\wasm32-unknown-unknown\\debug\\build\\az-c46fc9fd572841fa\\out\\try_track_caller"
+$ printf '%s' "// try_tra"... > "C:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\wasm32-unknown-unknown\\debug\\build\\az-c46fc9fd572841fa\\out\\try_track_caller\\try_track_caller.rs"
+$ "rustc" "try_track_caller.rs" "--emit=dep-info,metadata" >& /dev/null
+cargo:rustc-cfg=track_caller
+$ rm -r "C:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\wasm32-unknown-unknown\\debug\\build\\az-c46fc9fd572841fa\\out\\try_track_caller"

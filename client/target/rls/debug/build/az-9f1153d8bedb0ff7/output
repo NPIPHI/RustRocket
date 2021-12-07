@@ -1,0 +1,6 @@
+$ mkdir -p "c:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\rls\\debug\\build\\az-9f1153d8bedb0ff7\\out\\try_track_caller"
+$ cd "c:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\rls\\debug\\build\\az-9f1153d8bedb0ff7\\out\\try_track_caller"
+$ printf '%s' "// try_tra"... > "c:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\rls\\debug\\build\\az-9f1153d8bedb0ff7\\out\\try_track_caller\\try_track_caller.rs"
+$ "rustc" "try_track_caller.rs" "--emit=dep-info,metadata" >& /dev/null
+cargo:rustc-cfg=track_caller
+$ rm -r "c:\\Users\\Roger\\Desktop\\RustRocket\\client\\target\\rls\\debug\\build\\az-9f1153d8bedb0ff7\\out\\try_track_caller"

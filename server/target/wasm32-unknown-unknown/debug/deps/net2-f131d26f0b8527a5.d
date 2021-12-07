@@ -1,0 +1,12 @@
+C:\Users\Roger\Desktop\RustRocket\server\target\wasm32-unknown-unknown\debug\deps\net2-f131d26f0b8527a5.rmeta: C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\lib.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\tcp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\udp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\socket.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\ext.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\utils.rs
+
+C:\Users\Roger\Desktop\RustRocket\server\target\wasm32-unknown-unknown\debug\deps\libnet2-f131d26f0b8527a5.rlib: C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\lib.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\tcp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\udp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\socket.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\ext.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\utils.rs
+
+C:\Users\Roger\Desktop\RustRocket\server\target\wasm32-unknown-unknown\debug\deps\net2-f131d26f0b8527a5.d: C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\lib.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\tcp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\udp.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\socket.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\ext.rs C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\utils.rs
+
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\lib.rs:
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\tcp.rs:
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\udp.rs:
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\socket.rs:
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\ext.rs:
+C:\Users\Roger\.cargo\registry\src\github.com-1ecc6299db9ec823\net2-0.2.37\src\utils.rs:
