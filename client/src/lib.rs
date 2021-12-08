@@ -218,8 +218,9 @@ pub fn run_frame() {
             * glm::scale(&glm::identity(), &glm::vec3(plane_scale1, plane_scale1, plane_scale1))
         ;
 
+    let camera_rot = gd.frame_count as f32 / 1000.0;
     let view: glm::Mat4 = glm::look_at(
-        &glm::vec3(0.0,7.0,20.0 + z),
+        &glm::vec3(camera_rot.sin() * 7.0,camera_rot.cos() * 7.0,20.0 + z),
         &glm::vec3(0.0, 0.0, z),
         &glm::vec3(0.0,0.0,1.0)
     );
