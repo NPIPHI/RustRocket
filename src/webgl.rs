@@ -1,8 +1,5 @@
-
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{JsCast, JsValue};
 use web_sys::*;
-
-
 
 pub fn get_canvas() -> Option<web_sys::HtmlCanvasElement> {
     let document = web_sys::window().unwrap().document().unwrap();
@@ -151,4 +148,25 @@ pub fn bind_shader_texture(ctx: &WebGl2RenderingContext, texture: Option<&WebGlT
     ctx.active_texture(WebGl2RenderingContext::TEXTURE0 + texture_binding);
     ctx.bind_texture(WebGl2RenderingContext::TEXTURE_2D, texture);
     ctx.uniform1i(location, texture_binding as i32);
+}
+
+pub fn make_vao_vert_norm_uv(context: &WebGl2RenderingContext, program: &WebGlProgram, vertices: &Vec<f32>, normals: &Vec<f32>, uvs: &Vec<f32>) -> Result<(WebGlVertexArrayObject, i32), JsValue> {
+    let position_attribute_location = context.get_attrib_location(&program, "position");
+    let normal_attribute_location = context.get_attrib_location(&program, "normal");
+    let uv_attribute_location = context.get_attrib_location(&program, "uv");
+
+    let vertex_buffer = make_buffer(&context, vertices.as_slice());
+    let normal_buffer = make_buffer(&context, normals.as_slice());
+    let uv_buffer = make_buffer(&context, uvs.as_slice());
+
+    let vao = make_vao(context).unwrap();
+    context.bind_vertex_array(Some(&vao));
+
+    bind_shader_array(context, Some(&vertex_buffer), position_attribute_location as u32, 3);
+
+    bind_shader_array(context, Some(&normal_buffer), normal_attribute_location as u32, 3);
+
+    bind_shader_array(context, Some(&uv_buffer), uv_attribute_location as u32, 2);
+
+    return Ok((vao, (vertices.len()/3) as i32));
 }

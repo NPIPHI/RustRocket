@@ -29,12 +29,43 @@ pub async fn load_obj(path: &str) -> Result<ObjData, JsValue> {
     return Ok(obj);
 }
 
-pub async fn  load_bmp(path: &str) -> Result<(Vec<u8>, i32, i32), JsValue> {
+pub async fn load_bmp(path: &str) -> Result<(Vec<u8>, i32, i32), JsValue> {
     let file = load_file(path).await?;
     let bmp = Bmp::<Rgb888>::from_slice(file.as_slice()).ok().ok_or(JsValue::from_str("bad bmp format"))?;
 
     let raw = bmp.as_raw();
     Ok((raw.image_data().iter().map(|x|*x).collect(), raw.header().image_size.width as i32, raw.header().image_size.height as i32))
+}
+
+pub fn make_plane() -> (Vec<f32>, Vec<f32>, Vec<f32>){
+    let verts = vec![
+        -1f32, 1f32, 0f32,
+        -1f32, -1f32, 0f32,
+        1f32, 1f32, 0f32,
+        1f32, 1f32, 0f32,
+        -1f32, -1f32, 0f32,
+        1f32, -1f32, 0f32,
+    ];
+
+    let norms = vec![
+        0f32, 0f32, 1f32,
+        0f32, 0f32, 1f32,
+        0f32, 0f32, 1f32,
+        0f32, 0f32, 1f32,
+        0f32, 0f32, 1f32,
+        0f32, 0f32, 1f32,
+    ];
+
+    let uvs = vec![
+        0f32, 1f32,
+        0f32, 0f32,
+        1f32, 1f32,
+        1f32, 1f32,
+        0f32, 0f32,
+        1f32, 0f32,
+    ];
+
+    return (verts, norms, uvs);
 }
 
 pub async fn load_mesh(path: &str) -> Result<(Vec<f32>, Vec<f32>, Vec<f32>), JsValue> {
