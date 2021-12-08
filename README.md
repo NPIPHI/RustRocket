@@ -7,3 +7,5 @@ To build:
 `wasm-pack build --target web --debug`
 
 or: `wasm-pack build --target web --release`
+
+And then open index.html in a webserver, vscode live-server works well
